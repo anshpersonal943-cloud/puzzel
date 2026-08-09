@@ -1,0 +1,62 @@
+#app {
+  font-family: Arial, sans-serif;
+  text-align: center;
+  background-color: #f0f8ff;
+  min-height: 100vh;
+  padding: 20px;
+}
+
+h1, h2, h3 {
+  color: #333;
+}
+
+input, button {
+  margin: 10px;
+  padding: 10px;
+  font-size: 16px;
+  border: 2px solid #4CAF50;
+  border-radius: 5px;
+  background-color: #fff;
+}
+
+button {
+  background-color: #4CAF50;
+  color: white;
+  cursor: pointer;
+}
+
+button:hover {
+  background-color: #45a049;
+}
+
+#join-screen, #lobby, #game, #winner-screen {
+  max-width: 600px;
+  margin: 0 auto;
+  background-color: #fff;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 0 10px rgba(0,0,0,0.1);
+}
+
+#players-list div, #rankings div, #final-rankings div {
+  padding: 5px;
+  background-color: #e8f5e8;
+  margin: 5px 0;
+  border-radius: 5px;
+}
+
+#timer {
+  font-size: 24px;
+  color: #ff5722;
+  margin-bottom: 20px;
+}
+
+#puzzle-canvas {
+  border: 2px solid #333;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+#rankings {
+  margin-top: 20px;
+}

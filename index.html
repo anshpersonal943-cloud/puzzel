@@ -1,0 +1,1522 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Puzzle Party!</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <style>
+    /* ═══════════════════════════════════════════════
+       DESIGN TOKENS — warm, colorful, kid-friendly
+       ═══════════════════════════════════════════════ */
+    :root {
+      --bg: #FFF8F0;
+      --card: #FFFFFF;
+      --text: #2D2016;
+      --muted: #8C7A6B;
+      --border: #F0E4D6;
+      --coral: #FF6348;
+      --coral-dk: #E55039;
+      --green: #2ED573;
+      --green-dk: #26B861;
+      --amber: #FFA502;
+      --teal: #1ABC9C;
+      --purple: #A55EEA;
+      --red: #FF4757;
+      --shadow: 0 4px 24px rgba(45,32,22,.08);
+      --shadow-lg: 0 12px 40px rgba(45,32,22,.12);
+      --radius: 16px;
+    }
+
+    *, *::before, *::after {
+      margin: 0; padding: 0; box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Fredoka', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    .bg-blob {
+      position: fixed;
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 0;
+      opacity: 0.07;
+    }
+    .bg-blob.a {
+      width: 420px; height: 420px;
+      background: var(--coral);
+      top: -120px; right: -100px;
+      animation: blobFloat 18s ease-in-out infinite;
+    }
+    .bg-blob.b {
+      width: 300px; height: 300px;
+      background: var(--teal);
+      bottom: -80px; left: -60px;
+      animation: blobFloat 22s ease-in-out infinite reverse;
+    }
+    .bg-blob.c {
+      width: 200px; height: 200px;
+      background: var(--amber);
+      top: 40%; left: 50%;
+      animation: blobFloat 15s ease-in-out infinite 3s;
+    }
+    @keyframes blobFloat {
+      0%, 100% { transform: translate(0, 0) scale(1); }
+      50%      { transform: translate(20px, -30px) scale(1.08); }
+    }
+
+    /* Top-left brand (logo + event text) */
+    .header-brand {
+      position: fixed;
+      left: 18px;
+      top: 18px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      z-index: 220;
+      pointer-events: auto;
+    }
+    .brand-logo {
+      width: 72px;
+      height: 72px;
+      border-radius: 8px;
+      object-fit: contain;
+      box-shadow: var(--shadow);
+      background: transparent;
+      padding: 0;
+      display: block;
+    }
+    .brand-text {
+      font-weight: 800;
+      font-size: 14px;
+      color: var(--text);
+      background: rgba(255,255,255,0.9);
+      padding: 8px 10px;
+      border-radius: 10px;
+      box-shadow: var(--shadow);
+      letter-spacing: 0.6px;
+      white-space: nowrap;
+    }
+    @media (max-width: 700px) {
+      .header-brand { left: 12px; top: 12px; }
+      .brand-logo { width: 48px; height: 48px; }
+      .brand-text { font-size: 12px; padding: 6px 8px; }
+    }
+    .view {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 24px;
+      position: relative;
+      z-index: 1;
+    }
+    .view.active {
+      display: flex;
+      animation: viewEnter 0.4s ease both;
+    }
+    @keyframes viewEnter {
+      from { opacity: 0; transform: translateY(18px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .card {
+      background: var(--card);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      border: 1px solid var(--border);
+      padding: 32px;
+      width: 100%;
+      max-width: 480px;
+    }
+    .card-lg {
+      max-width: 600px;
+      padding: 36px;
+    }
+
+    .title {
+      font-size: 2rem;
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+    .title i { color: var(--coral); }
+    .subtitle {
+      color: var(--muted);
+      font-size: 0.95rem;
+      margin-bottom: 24px;
+    }
+    .section-label {
+      font-weight: 600;
+      font-size: 0.85rem;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 8px;
+    }
+
+    .input {
+      width: 100%;
+      padding: 14px 16px;
+      border: 2px solid var(--border);
+      border-radius: 12px;
+      font-family: 'Fredoka', sans-serif;
+      font-size: 1rem;
+      color: var(--text);
+      background: var(--bg);
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .input:focus {
+      border-color: var(--coral);
+      box-shadow: 0 0 0 3px rgba(255,99,72,0.12);
+    }
+    .input::placeholder { color: #C4B5A5; }
+    .input-group { margin-bottom: 16px; }
+    .input-label {
+      font-weight: 600;
+      font-size: 0.9rem;
+      margin-bottom: 6px;
+      display: block;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 14px 28px;
+      border: none;
+      border-radius: 12px;
+      font-family: 'Fredoka', sans-serif;
+      font-weight: 600;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: all 0.2s;
+      text-decoration: none;
+    }
+    .btn:active { transform: scale(0.97); }
+    .btn-coral {
+      background: var(--coral);
+      color: #fff;
+      box-shadow: 0 4px 16px rgba(255,99,72,0.3);
+    }
+    .btn-coral:hover {
+      background: var(--coral-dk);
+      transform: translateY(-1px);
+      box-shadow: 0 6px 20px rgba(255,99,72,0.35);
+    }
+    .btn-green {
+      background: var(--green);
+      color: #fff;
+      box-shadow: 0 4px 16px rgba(46,213,115,0.3);
+    }
+    .btn-green:hover {
+      background: var(--green-dk);
+      transform: translateY(-1px);
+    }
+    .btn-outline {
+      background: transparent;
+      color: var(--muted);
+      border: 2px solid var(--border);
+      box-shadow: none;
+    }
+    .btn-outline:hover {
+      border-color: var(--muted);
+      color: var(--text);
+    }
+    .btn-block { width: 100%; }
+    .btn:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+      transform: none !important;
+    }
+
+    .room-code-display {
+      display: flex;
+      gap: 6px;
+      justify-content: center;
+      margin: 16px 0;
+    }
+    .room-code-char {
+      width: 48px; height: 56px;
+      background: var(--bg);
+      border: 2px solid var(--border);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--coral);
+    }
+    .copy-hint {
+      font-size: 0.8rem;
+      color: var(--muted);
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    .player-list { list-style: none; }
+    .player-list li {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 14px;
+      border-radius: 12px;
+      margin-bottom: 6px;
+      background: var(--bg);
+    }
+    .player-list .avatar {
+      width: 36px; height: 36px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      font-weight: 700;
+      font-size: 0.9rem;
+      flex-shrink: 0;
+    }
+    .player-list .pname {
+      font-weight: 600;
+      font-size: 0.95rem;
+      flex: 1;
+    }
+    .player-list .tag {
+      font-size: 0.7rem;
+      font-weight: 600;
+      padding: 2px 8px;
+      border-radius: 6px;
+    }
+    .tag-host {
+      background: rgba(165,94,234,0.12);
+      color: var(--purple);
+    }
+
+    .image-picker-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+    .image-set {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      padding: 12px;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      background: var(--bg);
+    }
+    .image-set-title {
+      font-weight: 700;
+      margin-bottom: 6px;
+    }
+    .image-set select {
+      width: 100%;
+      padding: 10px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: var(--bg);
+    }
+
+    .waiting-msg {
+      text-align: center;
+      padding: 24px;
+      color: var(--muted);
+      font-size: 0.95rem;
+      line-height: 1.6;
+    }
+    .waiting-msg i {
+      font-size: 2rem;
+      color: var(--amber);
+      display: block;
+      margin-bottom: 12px;
+      animation: waitPulse 2s infinite;
+    }
+    @keyframes waitPulse {
+      0%, 100% { transform: scale(1); opacity: 1; }
+      50%      { transform: scale(1.1); opacity: 0.7; }
+    }
+
+    .game-top-bar {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+    }
+    .stat-chip {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--bg);
+      padding: 8px 14px;
+      border-radius: 10px;
+      font-weight: 600;
+      font-size: 0.9rem;
+      border: 1px solid var(--border);
+    }
+    .stat-chip i { font-size: 0.85rem; }
+    .ic-timer { color: var(--amber); }
+    .ic-moves { color: var(--teal); }
+
+    .player-progress {
+      margin-bottom: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      max-width: 330px;
+      width: 100%;
+    }
+    .progress-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background: var(--bg);
+      padding: 10px 14px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+    }
+    .next-level-box {
+      display: none;
+      flex-direction: column;
+      gap: 12px;
+      padding: 16px;
+      border-radius: 14px;
+      background: rgba(46, 213, 115, 0.08);
+      border: 1px solid rgba(46, 213, 115, 0.25);
+      margin-top: 16px;
+      align-items: center;
+      justify-content: center;
+    }
+    .next-level-text {
+      color: #2d3436;
+      font-weight: 600;
+      text-align: center;
+    }
+    .next-level-box .btn {
+      min-width: 160px;
+    }
+    .progress-avatar {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      font-weight: 700;
+      font-size: 0.8rem;
+      flex-shrink: 0;
+    }
+    .progress-info {
+      flex: 1;
+      min-width: 0;
+    }
+    .progress-name {
+      font-weight: 600;
+      font-size: 0.9rem;
+      margin-bottom: 4px;
+    }
+    .progress-bar {
+      width: 100%;
+      height: 6px;
+      background: var(--border);
+      border-radius: 3px;
+      overflow: hidden;
+    }
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--green), var(--teal));
+      border-radius: 3px;
+      transition: width 0.3s ease;
+    }
+    .progress-percent {
+      font-size: 0.8rem;
+      color: var(--muted);
+      margin-top: 2px;
+    }
+    .progress-time {
+      font-size: 0.85rem;
+      color: var(--text);
+      margin-top: 4px;
+    }
+
+    .game-layout {
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+      gap: 28px;
+      width: 100%;
+      max-width: 1040px;
+      margin: 0 auto;
+      padding: 16px 0;
+    }
+    .game-left,
+    .game-right {
+      width: 100%;
+    }
+    .game-left {
+      max-width: 520px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 20px;
+    }
+    .game-right {
+      max-width: 380px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+    .puzzle-board {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 1;
+      background: #E8DDD0;
+      border-radius: 14px;
+      overflow: hidden;
+      box-shadow: var(--shadow-lg);
+    }
+    .image-preview {
+      width: 100%;
+      text-align: center;
+    }
+    .image-preview img {
+      width: 140px;
+      height: 140px;
+      object-fit: cover;
+      border-radius: 16px;
+      box-shadow: var(--shadow);
+    }
+    .tiles-box {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 16px;
+      box-shadow: var(--shadow);
+    }
+    .tiles-box-label {
+      font-weight: 700;
+      font-size: 0.9rem;
+      color: var(--muted);
+      margin-bottom: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+    }
+    .tile-tray {
+      min-height: 180px;
+      display: grid;
+      justify-content: center;
+      align-content: start;
+      gap: 8px;
+      padding: 8px;
+      background: #FCF8F2;
+      border-radius: 14px;
+      overflow: hidden;
+    }
+
+    @media (max-width: 900px) {
+      .game-layout {
+        flex-direction: column;
+      }
+      .game-right {
+        max-width: 100%;
+      }
+    }
+    .puzzle-tile {
+      position: absolute;
+      border-radius: 8px;
+      cursor: pointer;
+      background-repeat: no-repeat;
+      transition: left 0.14s ease-out, top 0.14s ease-out, transform 0.1s;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.15), inset 0 1px 0 rgba(255,255,255,0.25);
+      will-change: left, top;
+    }
+    .tray-piece {
+      position: relative;
+      cursor: grab;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.12);
+    }
+    .tray-piece:active { cursor: grabbing; }
+    .puzzle-tile.dragging { opacity: 0.65; }
+    .drop-zone {
+      position: absolute;
+      border: 2px dashed rgba(0,0,0,0.2);
+      border-radius: 8px;
+      transition: border-color 0.2s;
+      background: rgba(0,0,0,0.05);
+    }
+    .drop-zone.drag-over {
+      border-color: var(--green);
+      background: rgba(46, 213, 115, 0.1);
+    }
+    .puzzle-tile.solved-glow {
+      box-shadow: 0 0 18px rgba(46,213,115,0.5);
+    }
+
+    .solved-overlay {
+      position: absolute;
+      inset: 0;
+      background: rgba(255,255,255,0.88);
+      backdrop-filter: blur(4px);
+      border-radius: 14px;
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 10;
+      animation: viewEnter 0.3s ease;
+    }
+    .solved-overlay.visible { display: flex; }
+    .solved-overlay .icon { font-size: 3rem; margin-bottom: 8px; }
+    .solved-overlay .heading { font-size: 1.4rem; font-weight: 700; }
+    .solved-overlay .detail { color: var(--muted); font-size: 0.9rem; margin-top: 4px; }
+    .solved-overlay .btn {
+      margin-top: 18px;
+      min-width: 170px;
+    }
+
+    .result-trophy {
+      font-size: 4rem;
+      margin-bottom: 12px;
+      animation: trophyBounce 1s ease infinite;
+    }
+    @keyframes trophyBounce {
+      0%, 100% { transform: translateY(0); }
+      50%      { transform: translateY(-12px); }
+    }
+    .result-name {
+      font-size: 1.8rem;
+      font-weight: 700;
+      color: var(--amber);
+      margin-bottom: 4px;
+    }
+    .result-sub { color: var(--muted); margin-bottom: 24px; }
+    .result-player-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-bottom: 24px;
+      width: 100%;
+    }
+    .result-player-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 16px;
+      background: rgba(255,255,255,0.95);
+      border-radius: 12px;
+      border: 1px solid rgba(0,0,0,0.08);
+    }
+    .result-player-name {
+      font-weight: 600;
+      color: var(--text);
+    }
+    .result-player-time {
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+    .result-actions { display: flex; gap: 10px; }
+
+    .toast-box {
+      position: fixed;
+      top: 20px; right: 20px;
+      z-index: 200;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .toast {
+      padding: 12px 20px;
+      border-radius: 12px;
+      font-weight: 500;
+      font-size: 0.9rem;
+      color: #fff;
+      transform: translateX(120%);
+      transition: transform 0.3s ease;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+    }
+    .toast.visible { transform: translateX(0); }
+    .toast-error   { background: var(--red); }
+    .toast-info    { background: var(--teal); }
+    .toast-success { background: var(--green); }
+
+    #confettiCanvas {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 100;
+    }
+
+    @media (max-width: 700px) {
+      .card, .card-lg { padding: 24px; }
+      .result-actions { flex-direction: column; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="bg-blob a"></div>
+  <div class="bg-blob b"></div>
+  <div class="bg-blob c"></div>
+
+  <div class="header-brand">
+    <img src="images/manava-bharati-india-international-school-panchsheel-park-delhi-boarding-schools-48zqtfy40f.avif" alt="MBIIS Logo" class="brand-logo">
+    <div class="brand-text">TECH FEST MBIIS 2026</div>
+  </div>
+
+  <div class="toast-box" id="toastBox"></div>
+  <canvas id="confettiCanvas"></canvas>
+
+  <!-- VIEW 1: JOIN / CREATE ROOM -->
+  <div class="view active" id="viewJoin">
+    <div class="card card-lg" style="text-align:center">
+      <div class="title"><i class="fas fa-puzzle-piece"></i> Puzzle Party</div>
+      <p class="subtitle">Sliding puzzle fun with friends!</p>
+
+      <div class="input-group" style="text-align:left">
+        <label class="input-label">Your Name</label>
+        <input class="input" id="inputName" type="text"
+               placeholder="Enter your name..." maxlength="16" autocomplete="off">
+      </div>
+
+      <div class="input-group" style="text-align:left">
+        <label class="input-label">Room Code (to join)</label>
+        <input class="input" id="inputRoom" type="text"
+               placeholder="e.g. ABCDE" maxlength="5" autocomplete="off"
+               style="text-transform:uppercase;letter-spacing:3px;font-weight:700">
+      </div>
+
+      <div style="display:flex;gap:10px;margin-top:8px">
+        <button class="btn btn-coral btn-block" id="btnJoin">
+          <i class="fas fa-sign-in-alt"></i> Join Room
+        </button>
+        <button class="btn btn-green" id="btnCreate">
+          <i class="fas fa-plus"></i> Create
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- VIEW 2: LOBBY -->
+  <div class="view" id="viewLobby">
+    <div class="card card-lg">
+      <div class="section-label">Room Code</div>
+      <div class="room-code-display" id="lobbyCode"></div>
+      <div class="copy-hint">Share this code with friends to join</div>
+
+      <div class="section-label">Players</div>
+      <ul class="player-list" id="lobbyPlayers"></ul>
+
+      <!-- HOST ONLY -->
+      <div id="hostControls" style="display:none;margin-top:20px">
+        <div class="section-label">Host Image Set</div>
+        <div class="input-group">
+          <label class="input-label" for="selectImageSet">Choose a set</label>
+          <select id="selectImageSet" class="input">
+            <option value="set1">Set 1</option>
+            <option value="set2">Set 2</option>
+            <option value="set3">Set 3</option>
+          </select>
+        </div>
+
+        <button class="btn btn-green btn-block" id="btnStart">
+          <i class="fas fa-play"></i> Start Game
+        </button>
+      </div>
+
+      <!-- NON-HOST -->
+      <div id="waitBox" style="display:none;margin-top:20px">
+        <div class="waiting-msg">
+          <i class="fas fa-hourglass-half"></i>
+          Waiting for the host to start the game...
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- VIEW 3: GAME -->
+  <div class="view" id="viewGame">
+    <div class="game-layout">
+      <div class="game-left">
+        <div class="puzzle-board" id="puzzleBoard">
+          <div class="solved-overlay" id="solvedOverlay">
+            <div class="icon">&#127881;</div>
+            <div class="heading">Level Complete!</div>
+            <div class="detail" id="solvedDetail"></div>
+            <button class="btn btn-green" id="nextLevelBtn">Next Level</button>
+          </div>
+        </div>
+        <div class="image-preview">
+          <img id="smallImagePreview" alt="Puzzle image preview">
+        </div>
+      </div>
+
+      <div class="game-right">
+        <div class="game-top-bar">
+          <div class="stat-chip">
+            <i class="fas fa-layer-group"></i>
+            <span id="gameLevel">Level 1</span>
+          </div>
+          <div class="stat-chip">
+            <i class="fas fa-arrows-alt ic-moves"></i>
+            <span id="gameMoves">0 moves</span>
+          </div>
+          <div class="stat-chip">
+            <i class="fas fa-stopwatch ic-timer"></i>
+            <span id="gameTotalTime">Elapsed: 00:00</span>
+          </div>
+        </div>
+
+        <div class="player-progress" id="playerProgress">
+          <!-- Player progress bars will be inserted here -->
+        </div>
+
+        <div class="next-level-box" id="nextLevelAction" style="display:none;">
+          <div class="next-level-text">Level complete! Click Next Level to continue.</div>
+          <button class="btn btn-green next-level-action" id="nextLevelBtnAlt">Next Level</button>
+        </div>
+
+        <div class="tiles-box">
+          <div class="tiles-box-label">Shuffled Tiles</div>
+          <div class="tile-tray" id="tileTray"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- VIEW 4: RESULT -->
+  <div class="view" id="viewResult">
+    <div class="card card-lg" style="text-align:center">
+      <div class="result-trophy">&#127942;</div>
+      <div class="result-name" id="resultTitle">All Levels Complete!</div>
+      <div class="result-sub" id="resultSub">Great job, team!</div>
+      <div class="result-player-list" id="resultPlayers"></div>
+      <div class="result-actions">
+        <button class="btn btn-outline btn-block" id="btnLeave">
+          <i class="fas fa-sign-out-alt"></i> Leave Room
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+    // ============================================================
+    // LEVELS DATA
+    // ============================================================
+    // Each level has 2 puzzles, so 3 levels = 6 puzzles total
+    const levels = [
+      { size: 3, timeLimit: 60 },   // Level 1 - Puzzle 1
+      { size: 3, timeLimit: 60 },   // Level 1 - Puzzle 2
+      { size: 4, timeLimit: 120 },  // Level 2 - Puzzle 1
+      { size: 4, timeLimit: 120 },  // Level 2 - Puzzle 2
+      { size: 5, timeLimit: 180 },  // Level 3 - Puzzle 1
+      { size: 5, timeLimit: 180 }   // Level 3 - Puzzle 2
+    ];
+    
+    const PUZZLES_PER_LEVEL = 2;
+    
+    function getCurrentLevelNumber() {
+      return Math.floor(currentLevel / PUZZLES_PER_LEVEL) + 1;
+    }
+    
+    function getCurrentPuzzleInLevel() {
+      return (currentLevel % PUZZLES_PER_LEVEL) + 1;
+    }
+
+    const imageUrls = [
+      'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=400&fit=crop',
+      'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=400&h=400&fit=crop',
+      'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop',
+      'https://images.unsplash.com/photo-1470770903676-69b98201ea1c?w=400&h=400&fit=crop',
+      'https://images.unsplash.com/photo-1494526585095-c41746248156?w=400&h=400&fit=crop',
+      'https://images.unsplash.com/photo-1518670544984-70b9a90de616?w=400&h=400&fit=crop',
+      'https://images.unsplash.com/photo-1517602302552-471fe67acf66?w=400&h=400&fit=crop',
+      'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=400&h=400&fit=crop',
+      'https://images.unsplash.com/photo-1523413651479-597eb2da0ad6?w=400&h=400&fit=crop'
+    ];
+
+    let shuffledImages = [];
+
+    function shuffleArray(arr) {
+      const copy = arr.slice();
+      for (let i = copy.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [copy[i], copy[j]] = [copy[j], copy[i]];
+      }
+      return copy;
+    }
+
+    function prepareShuffledImages(imageSet) {
+      // Each puzzle gets a different image from the set
+      console.log('[prepareShuffledImages] Input imageSet:', { type: typeof imageSet, isArray: Array.isArray(imageSet), content: imageSet });
+      if (Array.isArray(imageSet) && imageSet.length > 0) {
+        const shuffled = shuffleArray(imageSet);
+        shuffledImages = [];
+        // Ensure we have at least 6 images for all puzzles
+        const minRequired = Math.max(6, levels.length);
+        for (let i = 0; i < minRequired; i++) {
+          shuffledImages.push(shuffled[i % shuffled.length]);
+        }
+        console.log('[prepareShuffledImages] Result:', shuffledImages);
+        return;
+      }
+      // Fallback for legacy string format
+      if (typeof imageSet === 'string') {
+        shuffledImages = [imageSet, imageSet, imageSet];
+        console.log('[prepareShuffledImages] String fallback:', shuffledImages);
+        return;
+      }
+      shuffledImages = shuffleArray(imageUrls).slice(0, levels.length);
+      console.log('[prepareShuffledImages] Default fallback:', shuffledImages);
+    }
+
+    function getSelectedImageSet() {
+      const select = document.getElementById('selectImageSet');
+      const selectedSet = select ? select.value : 'set1';
+      return selectedSet;
+    }
+
+
+    // ============================================================
+    // STATE
+    // ============================================================
+    const socket = io();
+    let roomId = '';
+    let playerName = '';
+    let isHost = false;
+    let currentLevel = 0;
+    let gameStartTime = null;
+    let timerInterval = null;
+    let moveCount = 0;
+    let tiles = [];
+    let trayTiles = [];
+    let trayOrder = [];
+    let tileEls = {};
+    let currentImage = '';
+    let size = 3;
+    let lastPlayerList = [];
+    const AVATAR_COLORS = ['#FF6348','#2ED573','#FFA502','#A55EEA','#1ABC9C','#FF4757','#3742FA','#E84393'];
+    
+    function avatarColor(name) {
+      let hash = 0;
+      for (let i = 0; i < name.length; i++) hash = name.charCodeAt(i) + ((hash << 5) - hash);
+      return AVATAR_COLORS[Math.abs(hash) % AVATAR_COLORS.length];
+    }
+
+    function showView(viewId) {
+      document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+      document.getElementById(viewId).classList.add('active');
+    }
+
+    function formatTime(sec) {
+      const m = String(Math.floor(sec / 60)).padStart(2, '0');
+      const s = String(sec % 60).padStart(2, '0');
+      return m + ':' + s;
+    }
+
+    function updateLocalTimerDisplay() {
+      const totalTimeEl = document.getElementById('gameTotalTime');
+      if (!totalTimeEl || !gameStartTime) return;
+      const elapsedSeconds = Math.floor((Date.now() - gameStartTime) / 1000);
+      totalTimeEl.textContent = `Elapsed: ${formatTime(elapsedSeconds)}`;
+    }
+
+    function startLocalTimer() {
+      if (playerFinished || timerInterval) return;
+      if (!gameStartTime) gameStartTime = Date.now();
+      updateLocalTimerDisplay();
+      timerInterval = setInterval(updateLocalTimerDisplay, 1000);
+    }
+
+    function generateShuffle(size) {
+      const total = size * size;
+      const tiles = [];
+      for (let i = 0; i < total; i++) tiles.push(i);
+      for (let i = tiles.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [tiles[i], tiles[j]] = [tiles[j], tiles[i]];
+      }
+      return tiles;
+    }
+
+    // ============================================================
+    // JOIN / CREATE
+    // ============================================================
+    document.getElementById('btnJoin').addEventListener('click', () => {
+      playerName = document.getElementById('inputName').value.trim();
+      const code = document.getElementById('inputRoom').value.trim();
+      if (!playerName) { toast('Please enter your name', 'error'); return; }
+      if (!code || code.length < 3) { toast('Please enter a room code', 'error'); return; }
+      socket.emit('joinRoom', { roomId: code, name: playerName }, (res) => {
+        if (res && res.error) { toast(res.error, 'error'); return; }
+        roomId = code.toUpperCase();
+        showView('viewLobby');
+      });
+    });
+
+    document.getElementById('btnCreate').addEventListener('click', () => {
+      playerName = document.getElementById('inputName').value.trim();
+      if (!playerName) { toast('Please enter your name', 'error'); return; }
+      socket.emit('createRoom', playerName, (res) => {
+        if (!res || !res.roomId) return;
+        roomId = res.roomId;
+        isHost = true;
+        showView('viewLobby');
+      });
+    });
+
+    document.getElementById('inputRoom').addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') document.getElementById('btnJoin').click();
+    });
+    document.getElementById('inputName').addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') document.getElementById('inputRoom').focus();
+    });
+
+    // ============================================================
+    // LOBBY
+    // ============================================================
+    function renderRoomCode(code) {
+      const display = document.getElementById('lobbyCode');
+      display.innerHTML = '';
+      for (let i = 0; i < code.length; i++) {
+        const charEl = document.createElement('div');
+        charEl.className = 'room-code-char';
+        charEl.textContent = code[i];
+        display.appendChild(charEl);
+      }
+    }
+
+    function renderLobbyPlayers(players, hostId) {
+      const ul = document.getElementById('lobbyPlayers');
+      ul.innerHTML = '';
+      players.forEach(p => {
+        const li = document.createElement('li');
+        const avatar = document.createElement('div');
+        avatar.className = 'avatar';
+        avatar.style.backgroundColor = avatarColor(p.name);
+        avatar.textContent = p.name[0].toUpperCase();
+        li.appendChild(avatar);
+
+        const nameEl = document.createElement('div');
+        nameEl.className = 'pname';
+        nameEl.textContent = p.name;
+        li.appendChild(nameEl);
+
+        if (p.id === hostId) {
+          const tag = document.createElement('div');
+          tag.className = 'tag tag-host';
+          tag.textContent = 'Host';
+          li.appendChild(tag);
+        }
+        ul.appendChild(li);
+      });
+    }
+
+    function renderPlayerProgress(players) {
+      const container = document.getElementById('playerProgress');
+      container.innerHTML = '';
+
+      players.forEach(p => {
+        const item = document.createElement('div');
+        item.className = 'progress-item';
+
+        const avatar = document.createElement('div');
+        avatar.className = 'progress-avatar';
+        avatar.style.backgroundColor = avatarColor(p.name);
+        avatar.textContent = p.name[0].toUpperCase();
+        item.appendChild(avatar);
+
+        const info = document.createElement('div');
+        info.className = 'progress-info';
+
+        const nameEl = document.createElement('div');
+        nameEl.className = 'progress-name';
+        nameEl.textContent = p.name + (p.id === socket.id ? ' (You)' : '');
+        info.appendChild(nameEl);
+
+        const statusEl = document.createElement('div');
+        statusEl.className = 'progress-percent';
+        const elapsedSeconds = Math.floor((p.elapsedTime || 0) / 1000);
+        if (p.finished) {
+          statusEl.textContent = `Finished • Total: ${formatTime(Math.floor((p.totalTime || 0) / 1000))}`;
+        } else {
+          statusEl.textContent = `Level ${p.currentLevel + 1} • ${Math.round(p.progress || 0)}%`;
+        }
+        info.appendChild(statusEl);
+
+        const timeEl = document.createElement('div');
+        timeEl.className = 'progress-time';
+        timeEl.textContent = p.finished ? `Time: ${formatTime(Math.floor((p.totalTime || p.elapsedTime || 0) / 1000))}` : `Elapsed: ${formatTime(elapsedSeconds)}`;
+        info.appendChild(timeEl);
+
+        if (p.id === socket.id) {
+          document.getElementById('gameTotalTime').textContent = p.finished ? `Total: ${formatTime(Math.floor((p.totalTime || 0) / 1000))}` : `Elapsed: ${formatTime(elapsedSeconds)}`;
+        }
+
+        const bar = document.createElement('div');
+        bar.className = 'progress-bar';
+        const fill = document.createElement('div');
+        fill.className = 'progress-fill';
+        fill.style.width = (p.progress || 0) + '%';
+        bar.appendChild(fill);
+        info.appendChild(bar);
+
+        item.appendChild(info);
+        container.appendChild(item);
+      });
+    }
+
+    socket.on('playerListUpdate', (data) => {
+      lastPlayerList = data.players;
+      isHost = (data.hostId === socket.id);
+      renderLobbyPlayers(data.players, data.hostId);
+      const hostControls = document.getElementById('hostControls');
+      hostControls.style.display = isHost ? 'block' : 'none';
+      document.getElementById('waitBox').style.display = isHost ? 'none' : 'block';
+      renderRoomCode(roomId);
+
+      // Also update progress display if in game
+      if (document.getElementById('viewGame').classList.contains('active')) {
+        renderPlayerProgress(data.players);
+      }
+    });
+
+    // ============================================================
+    // START GAME
+    // ============================================================
+    document.getElementById('btnStart').addEventListener('click', () => {
+      const selectedSet = getSelectedImageSet();
+      if (!selectedSet) {
+        alert('Please choose a set before starting.');
+        return;
+      }
+      socket.emit('startGame', { startLevel: 0, selectedSet });
+    });
+
+    socket.on('gameStarted', (data) => {
+      const debugLog = { 
+        startLevel: data.startLevel, 
+        imageSetType: typeof data.imageSet,
+        imageSetIsArray: Array.isArray(data.imageSet),
+        imageSetLength: Array.isArray(data.imageSet) ? data.imageSet.length : 'N/A',
+        imageSetFirst: Array.isArray(data.imageSet) && data.imageSet.length > 0 ? data.imageSet[0] : 'N/A'
+      };
+      window.gameStartedDebug = debugLog;
+      console.log('[gameStarted event received]', debugLog);
+      currentLevel = data.startLevel;
+      showView('viewGame');
+      gameStartTime = Date.now();
+      playerFinished = false;
+      startLocalTimer();
+      prepareShuffledImages(data.imageSet);
+      window.afterPrepare = { shuffledImages: shuffledImages };
+      console.log('[gameStarted] After prepareShuffledImages, shuffledImages:', shuffledImages);
+      initializeGame();
+    });
+
+    socket.on('gameCompleted', () => {
+      showWin();
+    });
+
+    // ============================================================
+    // GAME
+    // ============================================================
+    function initializeGame() {
+      const level = levels[currentLevel];
+      size = level.size;
+      currentImage = level.image;
+      moveCount = 0;
+
+      const levelNum = getCurrentLevelNumber();
+      const puzzleNum = getCurrentPuzzleInLevel();
+      document.getElementById('gameLevel').textContent = 'Level ' + levelNum + ' - Puzzle ' + puzzleNum + '/2';
+      document.getElementById('gameMoves').textContent = '0 moves';
+      if (!gameStartTime) {
+        document.getElementById('gameTotalTime').textContent = 'Elapsed: 00:00';
+      }
+      currentImage = shuffledImages[currentLevel] || imageUrls[currentLevel] || '';
+      console.log('[initializeGame] Level', currentLevel, '- shuffledImages:', shuffledImages, '- currentImage:', currentImage);
+      window.debugCurrentImage = currentImage;
+      window.debugShuffledImages = shuffledImages;
+      document.getElementById('smallImagePreview').src = currentImage;
+      document.getElementById('solvedOverlay').classList.remove('visible');
+      const nextLevelAction = document.getElementById('nextLevelAction');
+      if (nextLevelAction) nextLevelAction.style.display = 'none';
+
+      startLocalTimer();
+
+      const totalTiles = size * size;
+      tiles = Array(totalTiles).fill(-1);
+      trayTiles = generateShuffle(size);
+      trayOrder = trayTiles.slice();
+
+      const board = document.getElementById('puzzleBoard');
+      const tray = document.getElementById('tileTray');
+      board.querySelectorAll('.puzzle-tile, .drop-zone').forEach(t => t.remove());
+      tray.innerHTML = '';
+      tileEls = {};
+
+      requestAnimationFrame(() => {
+        const boardW = board.clientWidth;
+        const gap = 3;
+        const tileSize = Math.floor((boardW - gap * (size - 1)) / size);
+
+        for (let pos = 0; pos < totalTiles; pos++) {
+          const zone = document.createElement('div');
+          zone.className = 'drop-zone';
+          zone.dataset.pos = pos;
+          zone.style.width = tileSize + 'px';
+          zone.style.height = tileSize + 'px';
+          zone.style.left = ((pos % size) * (tileSize + gap)) + 'px';
+          zone.style.top = (Math.floor(pos / size) * (tileSize + gap)) + 'px';
+          zone.addEventListener('dragover', e => {
+            e.preventDefault();
+            zone.classList.add('drag-over');
+          });
+          zone.addEventListener('dragleave', () => zone.classList.remove('drag-over'));
+          zone.addEventListener('drop', e => {
+            e.preventDefault();
+            zone.classList.remove('drag-over');
+            const tid = parseInt(e.dataTransfer.getData('text/plain'), 10);
+            if (!isNaN(tid)) {
+              const targetPos = parseInt(zone.dataset.pos, 10);
+              tryMoveTileToPos(tid, targetPos);
+            }
+          });
+          board.appendChild(zone);
+        }
+
+        tray.style.display = 'grid';
+        tray.style.gridTemplateColumns = `repeat(${size}, ${tileSize}px)`;
+        tray.style.gridAutoRows = `${tileSize}px`;
+        tray.style.gap = `${gap}px`;
+        tray.style.width = `${size * tileSize + gap * (size - 1)}px`;
+        tray.style.minHeight = `${size * tileSize + gap * (size - 1)}px`;
+        tray.style.justifyContent = 'center';
+        tray.style.alignContent = 'start';
+
+        trayTiles.forEach(tid => {
+          createTileElement(tid, size, tileSize);
+          tray.appendChild(tileEls[tid]);
+        });
+
+        updateTilePositions();
+        // Emit initial progress (0%)
+        socket.emit('updateProgress', 0);
+      });
+    }
+
+    function createTileElement(tid, size, tileSize) {
+      const el = document.createElement('div');
+      el.className = 'puzzle-tile tray-piece';
+      el.dataset.tid = tid;
+      el.draggable = true;
+      el.style.width = tileSize + 'px';
+      el.style.height = tileSize + 'px';
+      
+      // Set background image using inline style string
+      if (currentImage) {
+        el.style.backgroundImage = `url('${currentImage}')`;
+        el.style.backgroundSize = `${size * 100}% ${size * 100}%`;
+        const row = Math.floor(tid / size);
+        const col = tid % size;
+        el.style.backgroundPosition = `${col * 100 / (size - 1)}% ${row * 100 / (size - 1)}%`;
+      }
+
+      el.addEventListener('dragstart', e => {
+        e.dataTransfer.setData('text/plain', tid);
+        el.classList.add('dragging');
+      });
+      el.addEventListener('dragend', () => el.classList.remove('dragging'));
+
+      el.addEventListener('dragover', e => e.preventDefault());
+      el.addEventListener('drop', e => {
+        e.preventDefault();
+        const draggedTid = parseInt(e.dataTransfer.getData('text/plain'), 10);
+        const targetPos = parseInt(el.dataset.pos, 10);
+        if (!isNaN(draggedTid) && !isNaN(targetPos)) {
+          tryMoveTileToPos(draggedTid, targetPos);
+        }
+      });
+
+      tileEls[tid] = el;
+    }
+
+    function updateTilePositions() {
+      Object.keys(tileEls).forEach(tid => {
+        const el = tileEls[tid];
+        const pos = tiles.indexOf(parseInt(tid));
+        if (pos !== -1) {
+          const board = document.getElementById('puzzleBoard');
+          const boardW = board.clientWidth;
+          const gap = 3;
+          const tileSize = Math.floor((boardW - gap * (size - 1)) / size);
+          el.style.left = ((pos % size) * (tileSize + gap)) + 'px';
+          el.style.top = (Math.floor(pos / size) * (tileSize + gap)) + 'px';
+          el.dataset.pos = pos;
+          el.classList.remove('tray-piece');
+          el.classList.add('puzzle-tile');
+          board.appendChild(el);
+        } else if (trayTiles.includes(parseInt(tid))) {
+          delete el.dataset.pos;
+          el.classList.add('tray-piece');
+          el.classList.remove('puzzle-tile');
+          el.style.left = '';
+          el.style.top = '';
+          el.style.transform = '';
+        }
+      });
+
+      const tray = document.getElementById('tileTray');
+      tray.innerHTML = '';
+      trayTiles.slice().sort((a, b) => trayOrder.indexOf(a) - trayOrder.indexOf(b)).forEach(tid => {
+        tray.appendChild(tileEls[tid]);
+      });
+    }
+
+    function tryMoveTileToPos(tid, targetPos) {
+      const currentPos = tiles.indexOf(tid);
+      const targetTid = tiles[targetPos];
+
+      if (targetTid !== -1 && targetTid !== tid) {
+        if (!trayTiles.includes(targetTid)) {
+          trayTiles.push(targetTid);
+        }
+        tiles[targetPos] = -1;
+      }
+
+      if (currentPos !== -1) {
+        tiles[currentPos] = -1;
+      } else {
+        trayTiles = trayTiles.filter(id => id !== tid);
+      }
+
+      trayTiles = trayTiles.slice().sort((a, b) => trayOrder.indexOf(a) - trayOrder.indexOf(b));
+
+      tiles[targetPos] = tid;
+      updateTilePositions();
+      moveCount++;
+      document.getElementById('gameMoves').textContent = moveCount + ' move' + (moveCount !== 1 ? 's' : '');
+
+      // Calculate and emit progress
+      const progress = calculateProgress();
+      socket.emit('updateProgress', progress);
+
+      if (isSolved()) {
+        showSolvedOverlay();
+      }
+    }
+
+    function isSolved() {
+      for (let i = 0; i < tiles.length; i++) {
+        if (tiles[i] !== i) return false;
+      }
+      return true;
+    }
+
+    function calculateProgress() {
+      let correct = 0;
+      for (let i = 0; i < tiles.length; i++) {
+        if (tiles[i] === i) correct++;
+      }
+      return Math.round((correct / tiles.length) * 100);
+    }
+
+    function showSolvedOverlay() {
+      document.getElementById('solvedOverlay').classList.add('visible');
+      const nextLevelAction = document.getElementById('nextLevelAction');
+      if (nextLevelAction) nextLevelAction.style.display = 'flex';
+      Object.keys(tileEls).forEach(tid => tileEls[tid].classList.add('solved-glow'));
+      
+      const puzzleNum = getCurrentPuzzleInLevel();
+      const levelNum = getCurrentLevelNumber();
+      
+      let detailText = '';
+      if (puzzleNum === 1) {
+        // First puzzle of the level complete
+        detailText = 'Puzzle 1 of 2 complete! One more to go.';
+      } else {
+        // Second puzzle of the level complete
+        detailText = 'Level ' + levelNum + ' complete! Click Next to continue.';
+      }
+      document.getElementById('solvedDetail').textContent = detailText;
+      
+      // Emit level completion when the second puzzle of a level is complete
+      if (puzzleNum === 2) {
+        const levelIndex = Math.floor(currentLevel / PUZZLES_PER_LEVEL);
+        socket.emit('levelCompleted', { level: levelIndex });
+      }
+    }
+
+    function nextLevel() {
+      currentLevel++;
+      if (currentLevel < levels.length) {
+        initializeGame();
+      } else {
+        showWin();
+      }
+    }
+
+    function showWin() {
+      launchConfetti();
+      document.getElementById('resultTitle').textContent = 'Congratulations!';
+      document.getElementById('resultSub').textContent = 'All levels complete!';
+      renderResultPlayers(lastPlayerList);
+      showView('viewResult');
+    }
+
+    function renderResultPlayers(players) {
+      const container = document.getElementById('resultPlayers');
+      container.innerHTML = '';
+      if (!players || players.length === 0) {
+        container.textContent = 'No player data available.';
+        return;
+      }
+      players.slice().sort((a, b) => (a.finished === b.finished ? (a.totalTime || a.elapsedTime || 0) - (b.totalTime || b.elapsedTime || 0) : a.finished ? -1 : 1)).forEach(p => {
+        const item = document.createElement('div');
+        item.className = 'result-player-item';
+
+        const nameEl = document.createElement('div');
+        nameEl.className = 'result-player-name';
+        nameEl.textContent = p.name + (p.id === socket.id ? ' (You)' : '');
+
+        const timeEl = document.createElement('div');
+        timeEl.className = 'result-player-time';
+        const totalSec = Math.floor((p.totalTime || p.elapsedTime || 0) / 1000);
+        timeEl.textContent = p.finished ? `Total time: ${formatTime(totalSec)}` : `Elapsed: ${formatTime(totalSec)}`;
+
+        item.appendChild(nameEl);
+        item.appendChild(timeEl);
+        container.appendChild(item);
+      });
+    }
+
+    function launchConfetti() {
+      const canvas = document.getElementById('confettiCanvas');
+      const ctx = canvas.getContext('2d');
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+
+      const colors = ['#FF6348','#2ED573','#FFA502','#A55EEA','#1ABC9C','#FF4757','#FFEAA7'];
+      const particles = [];
+      for (let i = 0; i < 150; i++) {
+        particles.push({
+          x: canvas.width / 2 + (Math.random() - 0.5) * 300,
+          y: canvas.height * 0.35,
+          vx: (Math.random() - 0.5) * 16,
+          vy: -Math.random() * 18 - 3,
+          w: Math.random() * 10 + 4,
+          h: Math.random() * 6 + 2,
+          color: colors[Math.floor(Math.random() * colors.length)],
+          rot: Math.random() * 360,
+          rotV: (Math.random() - 0.5) * 14,
+          grav: 0.28 + Math.random() * 0.12,
+          opacity: 1
+        });
+      }
+
+      (function draw() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        let alive = false;
+        for (let p of particles) {
+          p.x += p.vx;
+          p.vy += p.grav;
+          p.y += p.vy;
+          p.rot += p.rotV;
+          p.opacity -= 0.005;
+          if (p.opacity > 0 && p.y < canvas.height) {
+            alive = true;
+            ctx.save();
+            ctx.translate(p.x, p.y);
+            ctx.rotate(p.rot * Math.PI / 180);
+            ctx.globalAlpha = p.opacity;
+            ctx.fillStyle = p.color;
+            ctx.fillRect(-p.w / 2, -p.h / 2, p.w, p.h);
+            ctx.restore();
+          }
+        }
+        if (alive) requestAnimationFrame(draw);
+      })();
+    }
+
+    document.getElementById('tileTray').addEventListener('dragover', e => e.preventDefault());
+    document.getElementById('tileTray').addEventListener('drop', e => {
+      e.preventDefault();
+      const tid = parseInt(e.dataTransfer.getData('text/plain'), 10);
+      if (!isNaN(tid)) {
+        const currentPos = tiles.indexOf(tid);
+        if (currentPos !== -1) {
+          tiles[currentPos] = -1;
+          if (!trayTiles.includes(tid)) {
+            trayTiles.push(tid);
+          }
+          trayTiles = trayTiles.slice().sort((a, b) => trayOrder.indexOf(a) - trayOrder.indexOf(b));
+          updateTilePositions();
+        }
+      }
+    });
+
+    document.getElementById('btnLeave').addEventListener('click', () => {
+      socket.emit('leaveRoom');
+      roomId = '';
+      playerName = '';
+      isHost = false;
+      showView('viewJoin');
+    });
+
+    const nextLevelBtn = document.getElementById('nextLevelBtn');
+    if (nextLevelBtn) {
+      nextLevelBtn.addEventListener('click', () => {
+        document.getElementById('solvedOverlay').classList.remove('visible');
+        const nextLevelAction = document.getElementById('nextLevelAction');
+        if (nextLevelAction) nextLevelAction.style.display = 'none';
+        Object.keys(tileEls).forEach(tid => tileEls[tid].classList.remove('solved-glow'));
+        nextLevel();
+      });
+    }
+    const nextLevelBtnAlt = document.getElementById('nextLevelBtnAlt');
+    if (nextLevelBtnAlt) {
+      nextLevelBtnAlt.addEventListener('click', () => {
+        document.getElementById('solvedOverlay').classList.remove('visible');
+        const nextLevelAction = document.getElementById('nextLevelAction');
+        if (nextLevelAction) nextLevelAction.style.display = 'none';
+        Object.keys(tileEls).forEach(tid => tileEls[tid].classList.remove('solved-glow'));
+        nextLevel();
+      });
+    }
+
+    // Helper function for toast notifications
+    function toast(message, type = 'info') {
+      const toastBox = document.getElementById('toastBox');
+      const toastEl = document.createElement('div');
+      toastEl.className = 'toast visible toast-' + type;
+      toastEl.textContent = message;
+      toastBox.appendChild(toastEl);
+      setTimeout(() => {
+        toastEl.classList.remove('visible');
+        setTimeout(() => toastEl.remove(), 300);
+      }, 3000);
+    }
+
+    socket.on('connect', () => {
+      toast('Connected!', 'success');
+    });
+    socket.on('disconnect', () => {
+      toast('Disconnected', 'error');
+    });
+  </script>
+</body>
+</html>
