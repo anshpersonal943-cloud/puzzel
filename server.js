@@ -6,8 +6,11 @@ const fs = require('fs');
 
 const app = express();
 const server = http.createServer(app);
+const roomHandler = require('./api/room');
 
 // Serve the frontend HTML file
+app.use(express.json({ limit: '32kb' }));
+app.all('/api/room', roomHandler);
 app.use(express.static(__dirname));
 
 const io = new Server(server, {
@@ -35,6 +38,7 @@ const MAX_ROOM_SIZE = 50; // Increased to handle 40+ players per room
 //   currentLevel: 0
 // }
 // ============================================================
+const TOTAL_LEVELS = 3;
 const rooms = {};
 
 // Generate a 5-character room ID (no ambiguous chars like O/0/I/1)
@@ -129,8 +133,9 @@ function broadcastPlayers(roomId) {
       return {
         id: p.id,
         name: p.name,
-        progress: p.progress || 0,
+        progress: typeof p.progress === 'number' ? p.progress : 0,
         currentLevel: p.currentLevel || 0,
+        currentPuzzle: p.currentPuzzle || 0,
         totalTime: p.totalTime || 0,
         elapsedTime: p.finished ? (p.totalTime || elapsedTime) : elapsedTime,
         finished: p.finished || false,
@@ -167,15 +172,8 @@ io.on('connection', (socket) => {
     socket.join(roomId);
     socket.roomId = roomId;
 
-    rooms[roomId].players.push({
-      id: socket.id,
-      name: name || 'Player',
-      progress: 0,
-      currentLevel: 0,
-      totalTime: 0,
-      finished: false,
-      startTime: null,
-    });
+    // Host is a spectator and does not play.
+    // Players will join separately and be added to the players list.
 
     console.log(`[+] Room created: ${roomId} by ${name || 'Player'}`);
 
@@ -203,6 +201,7 @@ io.on('connection', (socket) => {
       name: name || 'Player',
       progress: 0,
       currentLevel: room.startLevel || 0,
+      currentPuzzle: 0,
       totalTime: 0,
       finished: false,
       startTime: null,
@@ -248,19 +247,39 @@ io.on('connection', (socket) => {
     room.players.forEach(p => {
       p.progress = 0;
       p.currentLevel = startLevel;
+      p.currentPuzzle = 0;
       p.totalTime = 0;
       p.finished = false;
       p.startTime = now;
     });
 
-    // Shuffle and send imageSet
+    // Shuffle and send imageSet to players only; host remains in lobby.
     const imageSetToSend = Array.isArray(imageSet) ? shuffleArray(imageSet) : [];
     console.log(`[Game] Emitting gameStarted with shuffled imageSet:`, imageSetToSend);
 
-    io.to(rid).emit('gameStarted', {
+    socket.to(rid).emit('gameStarted', {
       startLevel,
       imageSet: imageSetToSend,
     });
+    // Notify host so they can display the game timer and have control to end the game
+    if (room.hostId) {
+      io.to(room.hostId).emit('hostGameStarted', { startTime: now });
+    }
+    broadcastPlayers(rid);
+  });
+
+  // ── END GAME BY HOST ─────────────────────────────────
+  socket.on('endGameByHost', () => {
+    const rid = socket.roomId;
+    if (!rid || !rooms[rid]) return;
+    const room = rooms[rid];
+    // Only host may end the game
+    if (socket.id !== room.hostId) return;
+    room.started = false;
+    room.endedByHost = true;
+    // Inform all players that host ended the game
+    io.to(rid).emit('gameEndedByHost', { message: 'Game has been ended by the host.' });
+    // Optionally mark players as finished/inactive and broadcast updated list
     broadcastPlayers(rid);
   });
 
@@ -271,7 +290,14 @@ io.on('connection', (socket) => {
     const room = rooms[rid];
     const player = room.players.find(p => p.id === socket.id);
     if (player) {
-      player.progress = progress;
+      // `progress` can be a number or an object { progress, level, puzzle }
+      if (typeof progress === 'object' && progress !== null) {
+        player.progress = typeof progress.progress === 'number' ? progress.progress : player.progress;
+        if (typeof progress.level === 'number') player.currentLevel = progress.level;
+        if (typeof progress.puzzle === 'number') player.currentPuzzle = progress.puzzle;
+      } else if (typeof progress === 'number') {
+        player.progress = progress;
+      }
       broadcastPlayers(rid);
     }
   });
@@ -287,7 +313,7 @@ io.on('connection', (socket) => {
     // Only count the level if the player is solving the current level
     if (data.level !== player.currentLevel) return;
 
-    if (data.level + 1 < 6) {
+    if (data.level + 1 < TOTAL_LEVELS) {
       player.currentLevel = data.level + 1;
       player.progress = 0;
     } else {
@@ -299,7 +325,13 @@ io.on('connection', (socket) => {
 
     const allFinished = room.players.length > 0 && room.players.every(p => p.finished);
     if (allFinished) {
-      io.to(rid).emit('gameCompleted');
+      const playersData = room.players.map(p => ({
+        name: p.name,
+        finished: p.finished,
+        elapsedTime: p.finished ? p.totalTime : Date.now() - (p.startTime || Date.now()),
+        progress: p.progress,
+      }));
+      io.to(rid).emit('gameCompleted', { players: playersData });
     }
   });
 

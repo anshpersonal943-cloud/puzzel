@@ -161,7 +161,9 @@ function renderPlayerProgress(progress) {
   info.appendChild(nameEl);
   const statusEl = document.createElement('div');
   statusEl.className = 'progress-percent';
-  statusEl.textContent = `Level ${currentLevel + 1} • ${progress}%`;
+  const levelNum = getCurrentLevelNumber();
+  const puzzleNum = getCurrentPuzzleInLevel();
+  statusEl.textContent = `Level ${levelNum} • Image ${puzzleNum} • ${progress}%`;
   info.appendChild(statusEl);
   const timeEl = document.createElement('div');
   timeEl.className = 'progress-time';

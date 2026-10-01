@@ -734,6 +734,10 @@
         <button class="btn btn-green btn-block" id="btnStart">
           <i class="fas fa-play"></i> Start Game
         </button>
+        <button class="btn btn-outline btn-block" id="btnEnd" style="margin-top:10px;display:none;">
+          <i class="fas fa-stop-circle"></i> End Game
+        </button>
+        <div id="hostGameTimer" style="margin-top:8px;display:none;color:var(--muted);">Elapsed: 00:00</div>
       </div>
 
       <!-- NON-HOST -->
@@ -757,6 +761,12 @@
             <div class="detail" id="solvedDetail"></div>
             <button class="btn btn-green" id="nextLevelBtn">Next Level</button>
           </div>
+          <div class="solved-overlay" id="hostEndedOverlay" style="display:none;">
+            <div class="icon">&#9888;</div>
+            <div class="heading">Game Ended</div>
+            <div class="detail">The host has ended the game.</div>
+            <button class="btn btn-outline" id="btnHostEndedLeave">Leave Room</button>
+          </div>
         </div>
         <div class="image-preview">
           <img id="smallImagePreview" alt="Puzzle image preview">
@@ -777,10 +787,6 @@
             <i class="fas fa-stopwatch ic-timer"></i>
             <span id="gameTotalTime">Elapsed: 00:00</span>
           </div>
-        </div>
-
-        <div class="player-progress" id="playerProgress">
-          <!-- Player progress bars will be inserted here -->
         </div>
 
         <div class="next-level-box" id="nextLevelAction" style="display:none;">
@@ -811,6 +817,6 @@
     </div>
   </div>
 
-  <script src="static.js"></script>
+  <script src="main.js"></script>
 </body>
 </html>

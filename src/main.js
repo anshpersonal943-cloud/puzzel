@@ -1,5 +1,3 @@
-import './style.css'
-
 const socket = io();
 let roomId, playerName, isHost = false;
 let imageData, size = 3, tiles = [], emptyPos = { x: size - 1, y: size - 1 };
