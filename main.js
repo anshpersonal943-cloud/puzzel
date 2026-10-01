@@ -97,7 +97,10 @@ const socket = {
         body: JSON.stringify(body),
       });
       const result = await response.json();
-      if (!response.ok) throw new Error(result.error || 'Room request failed.');
+      if (!response.ok) {
+        const message = typeof result.error === 'string' ? result.error : result.error?.message;
+        throw new Error(message || 'Room request failed.');
+      }
 
       if (event === 'createRoom' || event === 'joinRoom') {
         activeRoomId = result.roomId || body.roomId;
@@ -626,8 +629,13 @@ btnCreate.addEventListener('click', () => {
   const nameInput = document.getElementById('inputName');
   playerName = nameInput ? nameInput.value.trim() : '';
   if (!playerName) { toast('Please enter your name', 'error'); return; }
+  if (btnCreate) btnCreate.disabled = true;
   socket.emit('createRoom', playerName, response => {
-    if (!response || !response.roomId) { toast('Unable to create room', 'error'); return; }
+    if (btnCreate) btnCreate.disabled = false;
+    if (!response || !response.roomId) {
+      toast(response?.error || 'Unable to create room', 'error');
+      return;
+    }
     roomId = response.roomId;
     isHost = true;
     renderRoomCode(roomId);
@@ -646,8 +654,10 @@ btnJoin.addEventListener('click', () => {
   const code = codeInput ? codeInput.value.trim().toUpperCase() : '';
   if (!playerName) { toast('Please enter your name', 'error'); return; }
   if (!code) { toast('Please enter a room code', 'error'); return; }
+  if (btnJoin) btnJoin.disabled = true;
   roomId = code;
   socket.emit('joinRoom', { roomId, name: playerName }, response => {
+    if (btnJoin) btnJoin.disabled = false;
     if (!response || response.error) { toast(response?.error || 'Room not found', 'error'); return; }
     isHost = false;
     renderRoomCode(roomId);
