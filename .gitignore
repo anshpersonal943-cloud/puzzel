@@ -9,3 +9,4 @@ pnpm-debug.log*
 ngrok.exe
 ngrok.zip
 .vercel
+.env*
