@@ -221,10 +221,21 @@ function publicRoom(room) {
   };
 }
 
+function getRedisCredentials() {
+  return {
+    url: process.env.UPSTASH_REDIS_REST_URL || process.env.KV_REST_API_URL,
+    token: process.env.UPSTASH_REDIS_REST_TOKEN || process.env.KV_REST_API_TOKEN,
+  };
+}
+
+function hasRedisCredentials() {
+  const { url, token } = getRedisCredentials();
+  return Boolean(url && token);
+}
+
 async function redisCommand(command) {
-  const url = process.env.UPSTASH_REDIS_REST_URL;
-  const token = process.env.UPSTASH_REDIS_REST_TOKEN;
-  if (!url || !token) throw new Error('Configure UPSTASH_REDIS_REST_URL and UPSTASH_REDIS_REST_TOKEN to enable multiplayer.');
+  const { url, token } = getRedisCredentials();
+  if (!url || !token) throw new Error('Configure Upstash Redis REST URL and token to enable multiplayer.');
   const response = await fetch(url, {
     method: 'POST',
     headers: {
@@ -240,7 +251,7 @@ async function redisCommand(command) {
 
 async function readRoom(roomId) {
   const key = `puzzle-room:${roomId}`;
-  if (process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN) {
+  if (hasRedisCredentials()) {
     const raw = await redisCommand(['GET', key]);
     return raw ? JSON.parse(raw) : null;
   }
@@ -251,7 +262,7 @@ async function readRoom(roomId) {
 
 async function saveRoom(roomId, room, expectedVersion) {
   const key = `puzzle-room:${roomId}`;
-  if (process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN) {
+  if (hasRedisCredentials()) {
     const result = await redisCommand([
       'EVAL',
       compareAndSetScript,
@@ -302,7 +313,7 @@ async function mutateRoom(roomId, action, data) {
     const result = applyAction(room, action, data);
     if (result.error || result.deleteRoom) {
       if (result.deleteRoom) {
-        if (process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN) {
+        if (hasRedisCredentials()) {
           await redisCommand(['DEL', `puzzle-room:${roomId}`]);
         } else {
           memoryRooms.delete(roomId);
