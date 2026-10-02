@@ -5,6 +5,9 @@ const IMAGE_SETS = {
     '/images/Set1/download.jpg',
     '/images/Set1/filters_quality(95)format(webp).webp',
     '/images/Set1/large-cartoon-doraemon-nobita-shizuka-in-anywhere-door-wall-original-imah3ymzzhgh8836.webp',
+    '/images/Set1/118050.jpg',
+    '/images/Set1/45988920-a96c-11ed-bb7e-d4c44f26d91d.jpg',
+    '/images/Set1/acwc2020-scaled.jpg',
   ],
   set2: [
     '/images/Set2/acwc2020-scaled.jpg',
@@ -15,12 +18,12 @@ const IMAGE_SETS = {
     '/images/Set2/ss_fdfb6dcc30da5ea3adb496aa062a38c68ea4c889.1920x1080.jpg',
   ],
   set3: [
+    '/images/Set3/0c49e4a3de2066a9fdf1f28d039e2006.jpg',
     '/images/Set3/118050.jpg',
     '/images/Set3/45988920-a96c-11ed-bb7e-d4c44f26d91d.jpg',
     '/images/Set3/images (1).jpg',
     '/images/Set3/images.jpg',
     '/images/Set3/LEVA-GTA-Cars-JD-Urus-7-copy-scaled - Copy.jpg',
-    '/images/Set3/LEVA-GTA-Cars-JD-Urus-7-copy-scaled.jpg',
   ],
 };
 
