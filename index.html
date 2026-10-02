@@ -525,7 +525,16 @@
       overflow: hidden;
     }
 
-    @media (max-width: 900px) {
+    @media (min-width: 701px) and (max-width: 900px) {
+      .game-layout { gap: 16px; }
+      .game-left,
+      .game-right {
+        flex: 1 1 0;
+        min-width: 0;
+        max-width: none;
+      }
+    }
+    @media (max-width: 700px) {
       .game-layout {
         flex-direction: column;
       }

@@ -157,11 +157,13 @@ function applyAction(room, action, data) {
     const progress = data.progress;
     if (typeof progress === 'object' && progress !== null) {
       if (typeof progress.progress === 'number') player.progress = progress.progress;
-      if (typeof progress.level === 'number') player.currentLevel = progress.level;
-      if (typeof progress.puzzle === 'number') player.currentPuzzle = progress.puzzle;
     } else if (typeof progress === 'number') {
       player.progress = progress;
     }
+    const level = typeof progress?.level === 'number' ? progress.level : data.level;
+    const puzzle = typeof progress?.puzzle === 'number' ? progress.puzzle : data.puzzle;
+    if (typeof level === 'number') player.currentLevel = level;
+    if (typeof puzzle === 'number') player.currentPuzzle = puzzle;
     return { success: true };
   }
 

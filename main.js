@@ -183,6 +183,8 @@ function showView(viewId) {
   [viewJoin, viewLobby, viewGame, viewResult].forEach(view => view.classList.remove('active'));
   const view = document.getElementById(viewId);
   if (view) view.classList.add('active');
+  const headerBrand = document.querySelector('.header-brand');
+  if (headerBrand) headerBrand.style.display = viewId === 'viewGame' ? 'none' : '';
 }
 
 function toast(message, type = 'info') {
@@ -307,7 +309,7 @@ function setupTileGame(imageUrl) {
   tiles = Array(size * size).fill(-1);
   trayTiles = shuffleArray(Array.from({ length: size * size }, (_, i) => i));
   trayOrder = trayTiles.slice();
-  puzzleBoard.innerHTML = '';
+  puzzleBoard.querySelectorAll('.drop-zone, .puzzle-tile').forEach(el => el.remove());
   tileTray.innerHTML = '';
   const boardWidth = puzzleBoard.clientWidth;
   const gap = 3;
