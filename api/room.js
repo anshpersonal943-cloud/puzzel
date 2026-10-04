@@ -2,7 +2,7 @@ const crypto = require('crypto');
 
 const IMAGE_SETS = {
   set1: [
-    '/images/Set1/download.jpg',
+    '/images/Set1/1791112715063.png',
     '/images/Set1/filters_quality(95)format(webp).webp',
     '/images/Set1/large-cartoon-doraemon-nobita-shizuka-in-anywhere-door-wall-original-imah3ymzzhgh8836.webp',
     '/images/Set1/118050.jpg',
