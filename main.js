@@ -298,49 +298,9 @@ function getBoardSize() {
   return levelSizes[currentLevelIndex] || 3;
 }
 
-async function prepareImageForPuzzle(imageUrl) {
-  if (!imageUrl) return imageUrl;
-
-  return new Promise((resolve, reject) => {
-    const image = new Image();
-    image.crossOrigin = 'anonymous';
-    image.onload = () => {
-      const canvas = document.createElement('canvas');
-      const dimension = 1200;
-      canvas.width = dimension;
-      canvas.height = dimension;
-      const ctx = canvas.getContext('2d');
-      if (!ctx) {
-        resolve(imageUrl);
-        return;
-      }
-
-      ctx.fillStyle = '#f4efe8';
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-      const scale = Math.min(canvas.width / image.width, canvas.height / image.height);
-      const drawWidth = image.width * scale;
-      const drawHeight = image.height * scale;
-      const offsetX = (canvas.width - drawWidth) / 2;
-      const offsetY = (canvas.height - drawHeight) / 2;
-
-      ctx.drawImage(image, offsetX, offsetY, drawWidth, drawHeight);
-      resolve(canvas.toDataURL('image/png'));
-    };
-    image.onerror = () => reject(new Error(`Could not load puzzle image: ${imageUrl}`));
-    image.src = imageUrl;
-  });
-}
-
-async function setupTileGame(imageUrl) {
+function setupTileGame(imageUrl) {
   if (!puzzleBoard || !tileTray) return;
-  try {
-    currentImage = await prepareImageForPuzzle(imageUrl);
-  } catch (error) {
-    console.error(error);
-    currentImage = imageUrl;
-  }
-
+  currentImage = imageUrl;
   size = getBoardSize();
   moveCount = 0;
   if (!gameStartTime) gameStartTime = Date.now();
